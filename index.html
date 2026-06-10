@@ -10,39 +10,39 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --felt:#0a1510;
-  --felt2:#111e16;
-  --felt3:#172518;
-  --felt4:#1e3022;
-  --felt5:#263c2a;
-  --border:#1e3022;
-  --border2:#2d4a35;
-  --border-gold:rgba(212,175,55,.3);
+  --felt:#0a3d2c;
+  --felt2:#0e4a36;
+  --felt3:#125640;
+  --felt4:#17654b;
+  --felt5:#1d7256;
+  --border:#1a6049;
+  --border2:#27795e;
+  --border-gold:rgba(212,175,55,.35);
   --border-gold2:rgba(212,175,55,.6);
   --gold:#d4af37;
-  --gold2:#e8c84a;
-  --gold3:#b8962e;
-  --gold-bg:rgba(212,175,55,.08);
-  --gold-bg2:rgba(212,175,55,.15);
-  --cream:#f0ead8;
-  --cream2:#b8b09a;
-  --cream3:#6a6458;
+  --gold2:#f0d055;
+  --gold3:#c9a83e;
+  --gold-bg:rgba(212,175,55,.1);
+  --gold-bg2:rgba(212,175,55,.18);
+  --cream:#f4f0e2;
+  --cream2:#c4ceb8;
+  --cream3:#7e9586;
   --win:#00e676;
   --win2:#00c853;
-  --win-bg:rgba(0,230,118,.1);
-  --win-border:rgba(0,230,118,.35);
-  --lose:#ff5252;
-  --lose2:#c62828;
-  --lose-bg:rgba(255,82,82,.1);
-  --lose-border:rgba(255,82,82,.35);
-  --blue:#5b8dee;
-  --blue-bg:rgba(91,141,238,.1);
-  --amber:#f5a623;
-  --amber-bg:rgba(245,166,35,.1);
-  --purple:#9b6dff;
-  --purple-bg:rgba(155,109,255,.1);
-  --shadow:0 4px 24px rgba(0,0,0,.5);
-  --shadow-gold:0 0 24px rgba(212,175,55,.12);
+  --win-bg:rgba(0,230,118,.12);
+  --win-border:rgba(0,230,118,.4);
+  --lose:#ff5b5b;
+  --lose2:#d63434;
+  --lose-bg:rgba(255,91,91,.12);
+  --lose-border:rgba(255,91,91,.4);
+  --blue:#5b9dee;
+  --blue-bg:rgba(91,157,238,.12);
+  --amber:#ffb52e;
+  --amber-bg:rgba(255,181,46,.12);
+  --purple:#a77dff;
+  --purple-bg:rgba(167,125,255,.12);
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+  --shadow-gold:0 0 24px rgba(212,175,55,.15);
   --r:12px;--rs:8px;
   --emerald:var(--win);
   --rose:var(--lose);
@@ -71,7 +71,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 
 /* ── TOPBAR ── */
 .topbar{
-  background:linear-gradient(180deg,#060d09 0%,var(--felt2) 100%);
+  background:linear-gradient(180deg,#072e21 0%,var(--felt2) 100%);
   border-bottom:1px solid var(--border-gold);
   padding:0 24px;
   height:58px;
@@ -117,6 +117,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 .saldo-val{font-size:15px;font-weight:600;font-family:'DM Mono',monospace;line-height:1.2}
 .saldo-val.pos{color:var(--gold2)}
 .saldo-val.neg{color:var(--lose)}
+.saldo-committed{font-size:10px;color:var(--cream3);font-family:'DM Mono',monospace;line-height:1.3}
+.saldo-committed.has-val{color:var(--amber)}
 .saldo-edit-btn{
   width:26px;height:26px;border-radius:50%;
   border:1px solid var(--border2);color:var(--cream3);
@@ -124,6 +126,14 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
   transition:.2s;flex-shrink:0;
 }
 .saldo-edit-btn:hover{border-color:var(--gold);color:var(--gold)}
+.topbar-tools{display:flex;gap:6px;margin-left:4px}
+.tool-btn{
+  background:var(--felt3);border:1px solid var(--border2);
+  border-radius:var(--rs);color:var(--cream2);
+  padding:6px 11px;font-size:11px;font-weight:600;
+  transition:.2s;white-space:nowrap;
+}
+.tool-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--felt4)}
 
 /* ── TABS ── */
 .tabs-nav{
@@ -168,7 +178,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 .main{
   flex:1;overflow-y:auto;padding:22px;
   background:var(--felt);
-  background-image:radial-gradient(circle,rgba(212,175,55,.035) 1px,transparent 1px);
+  background-image:radial-gradient(circle,rgba(212,175,55,.055) 1px,transparent 1px);
   background-size:20px 20px;
   scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
 }
@@ -316,6 +326,15 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 .reto-step-big.warn-step{color:var(--amber)}
 .reto-step-big.dead-step{color:var(--lose)}
 .reto-step-sub{font-size:11px;color:var(--cream3);margin-bottom:10px}
+.reto-label-inp{
+  width:100%;background:transparent;border:none;
+  border-bottom:1px dashed var(--border2);
+  color:var(--gold2);font-size:12px;font-weight:500;
+  padding:3px 2px 5px;margin-bottom:10px;
+  transition:.2s;font-family:'Inter',sans-serif;
+}
+.reto-label-inp::placeholder{color:var(--cream3);font-style:italic;font-weight:400}
+.reto-label-inp:focus{border-bottom-color:var(--gold);outline:none}
 .reto-banca{
   display:flex;justify-content:space-between;align-items:center;
   background:var(--felt3);border:1px solid var(--border);
@@ -411,13 +430,14 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 .td-inp:focus{background:var(--felt3);border:1px solid var(--border-gold);box-shadow:0 0 0 2px rgba(212,175,55,.1)}
 .td-sel{background:transparent;border:none;color:var(--cream);padding:3px 4px;width:100%;font-weight:500}
 .td-sel:focus{background:var(--felt3)}
-.pnl-pos{color:var(--win);font-weight:700;font-family:'DM Mono',monospace}
-.pnl-neg{color:var(--lose);font-weight:700;font-family:'DM Mono',monospace}
+.pnl-pos{color:var(--win);font-weight:700;font-family:'DM Mono',monospace}.pnl-neg{color:var(--lose);font-weight:700;font-family:'DM Mono',monospace}
 .pnl-nil{color:var(--cream3);font-family:'DM Mono',monospace}
+.cashout-tag{display:block;font-size:10px;color:var(--amber);font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;margin-top:2px;opacity:.85;transition:.15s}
+.cashout-tag:hover{opacity:1;text-decoration:underline}
 
 /* ── GLOBAL VIEW ── */
 .global-hero{
-  background:linear-gradient(135deg,var(--felt2) 0%,rgba(26,58,38,.8) 100%);
+  background:linear-gradient(135deg,#0e4a36 0%,#155f47 100%);
   border:1px solid var(--border-gold);
   border-radius:16px;
   padding:26px 28px;
@@ -482,6 +502,40 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
   box-shadow:0 4px 16px rgba(212,175,55,.3);
 }
 .btn-new:hover{box-shadow:0 6px 24px rgba(212,175,55,.5);transform:translateY(-1px)}
+
+/* ── TOOLBAR LIBRE ── */
+.libre-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.libre-filters{display:flex;gap:8px}
+.filter-sel{
+  background:var(--felt2);border:1px solid var(--border2);
+  border-radius:var(--rs);color:var(--cream2);
+  padding:7px 11px;font-size:12px;font-weight:500;transition:.2s;cursor:pointer;
+}
+.filter-sel:focus,.filter-sel:hover{border-color:var(--gold);color:var(--cream)}
+
+/* ── HISTORIAL ── */
+.strat-name-static{font-family:'Playfair Display',serif;font-size:20px;font-weight:600;color:var(--cream);letter-spacing:.3px}
+.hist-tab.active{color:var(--gold)!important;border-bottom-color:var(--gold)!important}
+.hist-tab.active .tab-dot{background:var(--gold)}
+.hist-chart{
+  background:var(--felt2);border:1px solid var(--border);
+  border-radius:var(--r);padding:14px 16px;margin-bottom:18px;
+}
+.hist-chart-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--cream3);margin-top:6px;font-family:'DM Mono',monospace}
+.hist-list{display:flex;flex-direction:column;gap:6px}
+.hist-row{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--felt2);border:1px solid var(--border);
+  border-radius:var(--rs);padding:10px 14px;gap:12px;
+}
+.hist-row-left{display:flex;flex-direction:column;gap:2px;min-width:0}
+.hist-desc{font-size:13px;color:var(--cream);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-date{font-size:11px;color:var(--cream3);font-family:'DM Mono',monospace}
+.hist-row-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.hist-delta{font-size:14px;font-weight:700;font-family:'DM Mono',monospace}
+.hist-delta.pos{color:var(--win)}
+.hist-delta.neg{color:var(--lose)}
+.hist-saldo{font-size:10px;color:var(--cream3);font-family:'DM Mono',monospace}
 
 /* ── SNACK ── */
 .snack{
@@ -581,8 +635,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
       <div class="saldo-info">
         <span class="saldo-lbl">Bankroll</span>
         <span class="saldo-val pos" id="saldo-display">—</span>
+        <span class="saldo-committed" id="committed-display"></span>
       </div>
       <button class="saldo-edit-btn" onclick="editSaldo()" title="Editar saldo">✎</button>
+    </div>
+    <div class="topbar-tools">
+      <button class="tool-btn" onclick="exportData()" title="Descargar copia de seguridad">⭳ Exportar</button>
+      <button class="tool-btn" onclick="importData()" title="Cargar datos desde archivo">⭱ Importar</button>
     </div>
   </div>
   <div class="tabs-nav" id="tabs-nav"></div>
@@ -592,7 +651,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 <script>
 
 // ── STATE ──────────────────────────────────────────────────────────────────
-let S = { saldo: 100, tab: 'global', strategies: [] };
+let S = { saldo: 100, tab: 'global', strategies: [], history: [] };
 
 function save(){ try{ localStorage.setItem('bettrack_v3', JSON.stringify(S)); }catch(e){} }
 function load(){
@@ -602,13 +661,31 @@ function load(){
     const d2 = localStorage.getItem('bettrack_v2');
     const d = d3 || d2;
     if(d){ const p = JSON.parse(d); if(p && typeof p === 'object') S = {...S, ...p}; }
+    if(!Array.isArray(S.history)) S.history=[];
   }catch(e){}
+}
+
+// Registra un movimiento del bankroll en el historial
+function logMove(desc, delta){
+  if(!Array.isArray(S.history)) S.history=[];
+  S.history.unshift({
+    id:uid(), ts:Date.now(), desc, delta:+(delta||0).toFixed(2), saldo:+(S.saldo||0).toFixed(2)
+  });
+  if(S.history.length>500) S.history.length=500; // cap
 }
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
 function eur(n){ return (parseFloat(n)||0).toFixed(2)+'€'; }
 function sign(n){ return n>=0 ? '+'+eur(n) : eur(n); }
+function fmtDate(ts){
+  const d=new Date(ts);
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const hh=String(d.getHours()).padStart(2,'0');
+  const mi=String(d.getMinutes()).padStart(2,'0');
+  return `${dd}/${mm} ${hh}:${mi}`;
+}
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function gs(id){ return S.strategies.find(s=>s.id===id); }
 
@@ -622,23 +699,24 @@ function snack(msg, ms=2800){
 
 // ── STATS ──────────────────────────────────────────────────────────────────
 function retoStats(s){
-  let inv=0,ret=0,active=0,dead=0,completed=0;
+  let inv=0,ret=0,active=0,dead=0,completed=0,committed=0;
   (s.retos||[]).forEach(r=>{
     inv+=r.stake||0;
     if(r.dead) dead++;
     else if(r.completed){ completed++; ret+=r.finalBanca||0; }
-    else { active++; if(r.withdrawn) ret+=r.withdrawn; }
+    else { active++; if(r.withdrawn) ret+=r.withdrawn; committed+=(r.stake||0); }
   });
-  return {inv,ret,active,dead,completed,pnl:ret-inv,total:(s.retos||[]).length};
+  return {inv,ret,active,dead,completed,committed,pnl:ret-inv,total:(s.retos||[]).length};
 }
 function betStats(s){
-  let inv=0,ret=0,wins=0,losses=0,pend=0;
+  let inv=0,ret=0,wins=0,losses=0,pend=0,closed=0;
   (s.bets||[]).forEach(b=>{
     if(b.result==='win'){inv+=b.stake;ret+=b.stake*b.odds;wins++;}
     else if(b.result==='lose'){inv+=b.stake;losses++;}
+    else if(b.result==='cashout'){inv+=b.stake;ret+=(b.cashout||0);closed++;}
     else pend++;
   });
-  return {inv,ret,wins,losses,pend,pnl:ret-inv};
+  return {inv,ret,wins,losses,pend,closed,pnl:ret-inv};
 }
 function globalStats(){
   let inv=0,ret=0;
@@ -656,22 +734,88 @@ function render(){
   sd.textContent=eur(sv);
   sd.className='saldo-val '+(sv>=0?'pos':'neg');
 
+  // dinero comprometido en apuestas vivas (retos activos + apuestas libres pendientes)
+  let committed=0;
+  S.strategies.forEach(s=>{
+    if(s.type==='reto'){ committed+=retoStats(s).committed; }
+    else { (s.bets||[]).forEach(b=>{ if(b.result==='pending') committed+=(b.stake||0); }); }
+  });
+  const cd=document.getElementById('committed-display');
+  if(cd){
+    if(committed>0){ cd.textContent='⏳ '+eur(committed)+' apostado'; cd.className='saldo-committed has-val'; }
+    else { cd.textContent=''; cd.className='saldo-committed'; }
+  }
+
   const tnav=document.getElementById('tabs-nav');
   let th=`<button class="tab-btn global-tab${S.tab==='global'?' active':''}" onclick="setTab('global')"><div class="tab-dot"></div>Global</button>`;
   S.strategies.forEach(s=>{
     const ico=s.type==='reto'?'⬡':'≡';
     th+=`<button class="tab-btn${S.tab===s.id?' active':''}" onclick="setTab('${s.id}')"><div class="tab-dot"></div>${esc(s.name)}</button>`;
   });
+  th+=`<button class="tab-btn hist-tab${S.tab==='history'?' active':''}" onclick="setTab('history')"><div class="tab-dot"></div>🕑 Historial</button>`;
   th+=`<button class="tab-add-btn" onclick="newStrategy()">+ Nueva</button>`;
   tnav.innerHTML=th;
 
   const m=document.getElementById('main');
   if(S.tab==='global') m.innerHTML=renderGlobal();
+  else if(S.tab==='history') m.innerHTML=renderHistory();
   else{
     const s=gs(S.tab);
     if(!s){m.innerHTML='<div class="empty-state"><p class="empty-msg">Estrategia no encontrada.</p></div>';return;}
     m.innerHTML=s.type==='reto'?renderReto(s):renderLibre(s);
   }
+}
+
+// ── HISTORIAL ──────────────────────────────────────────────────────────────
+function renderHistory(){
+  const h=S.history||[];
+  // Construir serie de evolución del bankroll (de más antiguo a más nuevo)
+  const chron=[...h].reverse();
+  let chartSvg='';
+  if(chron.length>=2){
+    const vals=chron.map(x=>x.saldo);
+    const min=Math.min(...vals), max=Math.max(...vals);
+    const range=max-min||1;
+    const W=600,H=120,pad=4;
+    const pts=chron.map((x,i)=>{
+      const px=pad+(i/(chron.length-1))*(W-2*pad);
+      const py=H-pad-((x.saldo-min)/range)*(H-2*pad);
+      return `${px.toFixed(1)},${py.toFixed(1)}`;
+    }).join(' ');
+    const last=vals[vals.length-1], first=vals[0];
+    const lineColor=last>=first?'var(--win)':'var(--lose)';
+    chartSvg=`<div class="hist-chart">
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:120px">
+        <polyline points="${pts}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+      <div class="hist-chart-lbl"><span>Min ${eur(min)}</span><span>Máx ${eur(max)}</span></div>
+    </div>`;
+  }
+
+  const rows=h.length===0
+    ?`<div class="empty-state"><div class="empty-suits">🕑</div><p class="empty-msg">Aún no hay movimientos registrados</p></div>`
+    :`<div class="hist-list">`+h.map(m=>{
+      const pos=m.delta>=0;
+      return `<div class="hist-row">
+        <div class="hist-row-left">
+          <span class="hist-desc">${esc(m.desc)}</span>
+          <span class="hist-date">${fmtDate(m.ts)}</span>
+        </div>
+        <div class="hist-row-right">
+          <span class="hist-delta ${pos?'pos':'neg'}">${pos?'+':''}${eur(m.delta)}</span>
+          <span class="hist-saldo">→ ${eur(m.saldo)}</span>
+        </div>
+      </div>`;
+    }).join('')+`</div>`;
+
+  return `
+    <div class="strat-header">
+      <span class="strat-name-static">Historial de movimientos</span>
+      ${h.length>0?`<button class="del-strat-btn" onclick="clearHistory()">🗑 Borrar historial</button>`:''}
+    </div>
+    ${chartSvg}
+    ${rows}
+  `;
 }
 
 // ── GLOBAL ─────────────────────────────────────────────────────────────────
@@ -753,15 +897,14 @@ function renderReto(s){
   const pnlC=st.pnl>=0?'var(--emerald)':'var(--rose)';
 
   let cards=(s.retos||[]).map(r=>{
-    const banca=stake*Math.pow(odds,r.step);
+    const rStake=parseFloat(r.stake)||stake;
+    const banca=rStake*Math.pow(odds,r.step);
     const pct=Math.min((r.step/target)*100,100);
     const isWarn=!r.dead&&!r.completed&&r.step>=wStep;
     const stepClass=r.dead?'dead-step':isWarn?'warn-step':'alive';
     const barColor=r.dead?'var(--rose)':r.completed?'var(--amber)':isWarn?'var(--amber)':'var(--emerald)';
-    const isWaiting=!r.started&&r.step===0&&!r.dead&&!r.completed;
     const statusBadge=r.dead?'<span class="badge badge-red">Muerto</span>':
       r.completed?'<span class="badge badge-amber">✓ Completo</span>':
-      isWaiting?'<span class="badge badge-muted">Pendiente</span>':
       isWarn?'<span class="badge badge-amber">Retirar</span>':
       '<span class="badge badge-green">Activo</span>';
     const withdrawn=r.withdrawn?`<div class="reto-withdrawn">↑ Retirado: ${eur(r.withdrawn)}</div>`:'';
@@ -782,6 +925,7 @@ function renderReto(s){
     return `<div class="reto-card${r.dead?' dead':r.completed?' completed':isWarn?' warn-card':''}">
       <div class="reto-card-corner">${['♠','♦','♣','♥'][r.num%4]}</div>
       <div class="reto-top"><span class="reto-num">Reto #${r.num}</span>${statusBadge}</div>
+      <input class="reto-label-inp" value="${esc(r.label||'')}" placeholder="+ Añadir partido / apuesta" onchange="rLabel('${s.id}','${r.id}',this.value)">
       <div class="reto-step-big ${stepClass}">P${r.step}</div>
       <div class="reto-step-sub">de ${target} pasos objetivo</div>
       <div class="reto-banca">
@@ -831,9 +975,9 @@ function renderReto(s){
 
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-val" style="color:var(--blue)">${st.active}</div><div class="stat-lbl">Activos</div></div>
-      <div class="stat-card"><div class="stat-val">${st.total}</div><div class="stat-lbl">Total retos</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--amber)">${eur(st.committed)}</div><div class="stat-lbl">Apostado ahora</div></div>
       <div class="stat-card"><div class="stat-val" style="color:${pnlC}">${sign(st.pnl)}</div><div class="stat-lbl">P&L</div></div>
-      <div class="stat-card"><div class="stat-val">${eur(st.inv)}</div><div class="stat-lbl">Invertido</div></div>
+      <div class="stat-card"><div class="stat-val">${eur(st.inv)}</div><div class="stat-lbl">Invertido total</div></div>
       <div class="stat-card"><div class="stat-val" style="color:var(--amber)">${eur(st.ret)}</div><div class="stat-lbl">Recuperado</div></div>
       <div class="stat-card"><div class="stat-val" style="color:var(--rose)">${st.dead}</div><div class="stat-lbl">Muertos</div></div>
     </div>
@@ -849,24 +993,43 @@ function renderLibre(s){
   const pnlC=st.pnl>=0?'var(--emerald)':'var(--rose)';
   const wr=(st.wins+st.losses)>0?Math.round(st.wins/(st.wins+st.losses)*100)+'%':'—';
 
-  const rows=(s.bets||[]).length===0
-    ?`<tr><td colspan="8" style="text-align:center;padding:36px;color:var(--gray-400);font-weight:500">Sin apuestas — pulsa Añadir para empezar</td></tr>`
-    :(s.bets||[]).map(b=>{
-      const profit=b.result==='win'?b.stake*(b.odds-1):b.result==='lose'?-b.stake:null;
+  // filtro y orden (guardados en la estrategia)
+  const filter=s.betFilter||'all';
+  const sort=s.betSort||'recent';
+  let list=[...(s.bets||[])];
+  if(filter!=='all') list=list.filter(b=>b.result===filter);
+  if(sort==='recent') list.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  else if(sort==='old') list.sort((a,b)=>(a.ts||0)-(b.ts||0));
+  else if(sort==='pnl'){
+    const pf=b=>b.result==='win'?b.stake*(b.odds-1):b.result==='lose'?-b.stake:b.result==='cashout'?(b.cashout||0)-b.stake:0;
+    list.sort((a,b)=>pf(b)-pf(a));
+  }
+
+  const rows=list.length===0
+    ?`<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--cream3);font-weight:500">${(s.bets||[]).length===0?'Sin apuestas — pulsa Añadir para empezar':'Ninguna apuesta con este filtro'}</td></tr>`
+    :list.map(b=>{
+      let profit;
+      if(b.result==='win') profit=b.stake*(b.odds-1);
+      else if(b.result==='lose') profit=-b.stake;
+      else if(b.result==='cashout') profit=(b.cashout||0)-b.stake;
+      else profit=null;
       const pClass=profit===null?'pnl-nil':profit>=0?'pnl-pos':'pnl-neg';
       const pTxt=profit===null?'—':(profit>=0?'+':'')+eur(profit);
-      const resSel=['pending','win','lose'].map(v=>
-        `<option value="${v}"${b.result===v?' selected':''}>${v==='pending'?'⏳ Pendiente':v==='win'?'✅ Ganada':'❌ Perdida'}</option>`
+      const resSel=['pending','win','lose','cashout'].map(v=>
+        `<option value="${v}"${b.result===v?' selected':''}>${v==='pending'?'⏳ Pendiente':v==='win'?'✅ Ganada':v==='lose'?'❌ Perdida':'💰 Cerrada'}</option>`
       ).join('');
-      const rowBg=b.result==='win'?'background:rgba(5,150,105,.03)':b.result==='lose'?'background:rgba(225,29,72,.03)':'';
+      const rowBg=b.result==='win'?'background:rgba(0,230,118,.05)':b.result==='lose'?'background:rgba(255,91,91,.05)':b.result==='cashout'?'background:rgba(255,181,46,.05)':'';
+      const cashoutInfo=b.result==='cashout'?`<span class="cashout-tag" onclick="editCashout('${s.id}','${b.id}')" title="Editar cierre">cierre: ${eur(b.cashout||0)} ✎</span>`:'';
+      const dateStr=b.ts?fmtDate(b.ts):'—';
       return `<tr style="${rowBg}">
+        <td style="font-size:11px;color:var(--cream3);font-family:'DM Mono',monospace;white-space:nowrap">${dateStr}</td>
         <td><input class="td-inp" value="${esc(b.desc)}" placeholder="Partido..." onchange="upBet('${s.id}','${b.id}','desc',this.value)" style="min-width:110px"></td>
         <td><input class="td-inp" type="number" step="0.5" min="0" value="${b.stake}" onchange="upBet('${s.id}','${b.id}','stake',this.value)" style="width:68px;font-family:'DM Mono',monospace"></td>
         <td><input class="td-inp" type="number" step="0.05" min="1" value="${b.odds}" onchange="upBet('${s.id}','${b.id}','odds',this.value)" style="width:62px;font-family:'DM Mono',monospace"></td>
         <td><input class="td-inp" value="${esc(b.market)}" placeholder="Over 2.5..." onchange="upBet('${s.id}','${b.id}','market',this.value)" style="width:88px"></td>
         <td><input class="td-inp" value="${esc(b.note||'')}" placeholder="Nota..." onchange="upBet('${s.id}','${b.id}','note',this.value)" style="width:80px"></td>
         <td><select class="td-sel" onchange="upBet('${s.id}','${b.id}','result',this.value)" style="width:128px">${resSel}</select></td>
-        <td class="${pClass}" style="white-space:nowrap;font-size:13px">${pTxt}</td>
+        <td class="${pClass}" style="white-space:nowrap;font-size:13px">${pTxt}${cashoutInfo}</td>
         <td><button class="btn-sm danger" onclick="delBet('${s.id}','${b.id}')" style="width:26px;height:26px">✕</button></td>
       </tr>`;
     }).join('');
@@ -883,16 +1046,32 @@ function renderLibre(s){
       <div class="stat-card"><div class="stat-val">${eur(st.inv)}</div><div class="stat-lbl">Invertido</div></div>
       <div class="stat-card"><div class="stat-val" style="color:var(--emerald)">${st.wins}</div><div class="stat-lbl">Ganadas</div></div>
       <div class="stat-card"><div class="stat-val" style="color:var(--rose)">${st.losses}</div><div class="stat-lbl">Perdidas</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--amber)">${st.closed}</div><div class="stat-lbl">Cerradas</div></div>
       <div class="stat-card"><div class="stat-val">${wr}</div><div class="stat-lbl">Win rate</div></div>
-      <div class="stat-card"><div class="stat-val" style="color:var(--gray-400)">${st.pend}</div><div class="stat-lbl">Pendientes</div></div>
     </div>
 
-    <button class="btn-add-bet" onclick="addBet('${s.id}')">+ Añadir apuesta</button>
+    <div class="libre-toolbar">
+      <button class="btn-add-bet" onclick="addBet('${s.id}')">+ Añadir apuesta</button>
+      <div class="libre-filters">
+        <select class="filter-sel" onchange="setBetFilter('${s.id}',this.value)">
+          <option value="all"${filter==='all'?' selected':''}>Todas</option>
+          <option value="pending"${filter==='pending'?' selected':''}>⏳ Pendientes</option>
+          <option value="win"${filter==='win'?' selected':''}>✅ Ganadas</option>
+          <option value="lose"${filter==='lose'?' selected':''}>❌ Perdidas</option>
+          <option value="cashout"${filter==='cashout'?' selected':''}>💰 Cerradas</option>
+        </select>
+        <select class="filter-sel" onchange="setBetSort('${s.id}',this.value)">
+          <option value="recent"${sort==='recent'?' selected':''}>Más recientes</option>
+          <option value="old"${sort==='old'?' selected':''}>Más antiguas</option>
+          <option value="pnl"${sort==='pnl'?' selected':''}>Por P&L</option>
+        </select>
+      </div>
+    </div>
 
     <div class="bets-table-wrap">
       <table class="bets-table">
         <thead><tr>
-          <th>Descripción</th><th>Stake €</th><th>Cuota</th>
+          <th>Fecha</th><th>Descripción</th><th>Stake €</th><th>Cuota</th>
           <th>Mercado</th><th>Nota</th><th>Resultado</th><th>P&L</th><th></th>
         </tr></thead>
         <tbody>${rows}</tbody>
@@ -902,10 +1081,12 @@ function renderLibre(s){
 
 // ── ACTIONS ────────────────────────────────────────────────────────────────
 function setTab(id){S.tab=id;render();}
+function setBetFilter(sid,v){const s=gs(sid);if(s){s.betFilter=v;save();render();}}
+function setBetSort(sid,v){const s=gs(sid);if(s){s.betSort=v;save();render();}}
 
 function editSaldo(){
   modal('Editar saldo',[{id:'v',label:'Saldo disponible (€)',type:'number',val:S.saldo}],
-    d=>{const v=parseFloat(d.v);if(!isNaN(v)){S.saldo=+v.toFixed(2);save();render();}});
+    d=>{const v=parseFloat(d.v);if(!isNaN(v)){const old=S.saldo;S.saldo=+v.toFixed(2);logMove('Ajuste manual de saldo',S.saldo-old);save();render();}});
 }
 
 function newStrategy(){
@@ -931,9 +1112,12 @@ function delStrategy(id){
 function rAdd(sid){
   const s=gs(sid);if(!s)return;
   const stake=parseFloat(s.config.stake)||10;
+  if(S.saldo<stake){snack('⚠️ Saldo insuficiente para este stake');return;}
+  S.saldo=+(S.saldo-stake).toFixed(2);
   const num=(s.retos.length+1);
-  s.retos.push({id:uid(),num,step:0,stake,dead:false,completed:false,withdrawn:0,finalBanca:0,started:false});
-  save();render();snack(`Reto #${num} creado — registra el resultado cuando apuestes`);
+  s.retos.push({id:uid(),num,step:0,stake,dead:false,completed:false,withdrawn:0,finalBanca:0,started:true,label:''});
+  logMove(`${s.name} · Reto #${num} creado`,-stake);
+  save();render();snack(`Reto #${num} creado — ${eur(stake)} comprometidos`);
 }
 
 function rWin(sid,rid){
@@ -941,17 +1125,13 @@ function rWin(sid,rid){
   if(!r||r.dead||r.completed)return;
   const odds=parseFloat(s.config.odds)||1.5;
   const target=parseInt(s.config.target)||12;
-  if(!r.started){
-    if(S.saldo<r.stake){snack('⚠️ Saldo insuficiente');return;}
-    S.saldo=+(S.saldo-r.stake).toFixed(2);
-    r.started=true;
-  }
   r.step++;
   const banca=r.stake*Math.pow(odds,r.step);
   if(r.step>=target){
     r.completed=true;r.finalBanca=banca;
     const net=banca-(r.withdrawn||0);
     S.saldo=+(S.saldo+net).toFixed(2);
+    logMove(`${s.name} · Reto #${r.num} completado (P${r.step})`,net);
     snack(`🏆 Reto #${r.num} completado! +${eur(banca)}`);
   } else {
     snack(`✅ Reto #${r.num} → Paso ${r.step} · Banca: ${eur(banca)}`);
@@ -962,10 +1142,6 @@ function rWin(sid,rid){
 function rLose(sid,rid){
   const s=gs(sid);const r=s?.retos.find(r=>r.id===rid);
   if(!r||r.dead||r.completed)return;
-  if(!r.started){
-    S.saldo=+(S.saldo-r.stake).toFixed(2);
-    r.started=true;
-  }
   r.dead=true;
   snack(`❌ Reto #${r.num} muerto en paso ${r.step}`);
   save();render();
@@ -984,6 +1160,7 @@ function rWithdraw(sid,rid){
     const amount=+(banca*(pct/100)).toFixed(2);
     r.withdrawn=(r.withdrawn||0)+amount;
     S.saldo=+(S.saldo+amount).toFixed(2);
+    logMove(`${s.name} · Retirada parcial Reto #${r.num}`,amount);
     snack(`↑ ${eur(amount)} retirados del Reto #${r.num}`);
     save();render();
   });
@@ -992,9 +1169,20 @@ function rWithdraw(sid,rid){
 function rReset(sid,rid){
   const s=gs(sid);const r=s?.retos.find(r=>r.id===rid);
   if(!r)return;
-  r.step=0;r.dead=false;r.completed=false;r.withdrawn=0;r.finalBanca=0;r.started=false;
-  snack(`↺ Reto #${r.num} reiniciado`);
+  const stake=parseFloat(s.config.stake)||10;
+  if(S.saldo<stake){snack('⚠️ Saldo insuficiente para reiniciar');return;}
+  S.saldo=+(S.saldo-stake).toFixed(2);
+  r.stake=stake;r.step=0;r.dead=false;r.completed=false;r.withdrawn=0;r.finalBanca=0;r.started=true;
+  logMove(`${s.name} · Reto #${r.num} reiniciado`,-stake);
+  snack(`↺ Reto #${r.num} reiniciado — ${eur(stake)} comprometidos`);
   save();render();
+}
+
+function rLabel(sid,rid,val){
+  const s=gs(sid);const r=s?.retos.find(r=>r.id===rid);
+  if(!r)return;
+  r.label=val;
+  save();
 }
 
 function rDelete(sid,rid){
@@ -1005,35 +1193,164 @@ function rDelete(sid,rid){
 
 function addBet(sid){
   const s=gs(sid);if(!s)return;
-  s.bets.push({id:uid(),desc:'',stake:10,odds:1.50,market:'',note:'',result:'pending'});
-  save();render();
+  const stake=10;
+  if(S.saldo<stake){snack('⚠️ Saldo insuficiente');return;}
+  S.saldo=+(S.saldo-stake).toFixed(2);
+  s.bets.unshift({id:uid(),ts:Date.now(),desc:'',stake,odds:1.50,market:'',note:'',result:'pending'});
+  logMove(`${s.name} · Apuesta creada`,-stake);
+  save();render();snack(`Apuesta creada — ${eur(stake)} comprometidos`);
+}
+
+// Devuelve el ajuste de saldo que aportó un resultado concreto (para revertirlo)
+function betEffect(b, result){
+  if(result==='win') return b.stake*b.odds;        // sumó el retorno bruto
+  if(result==='cashout') return b.cashout||0;       // sumó el valor de cierre
+  return 0;                                          // pending y lose no suman nada (stake ya salió al crear)
 }
 
 function upBet(sid,bid,key,val){
   const s=gs(sid);const b=s?.bets.find(b=>b.id===bid);
   if(!b)return;
-  const prev={...b};
-  if(key==='stake'||key==='odds') b[key]=parseFloat(val)||0;
-  else b[key]=val;
-  if(key==='result'){
-    const gain=bk=>+(bk.stake*bk.odds-bk.stake).toFixed(2);
-    if(prev.result==='pending'&&val==='win'){S.saldo=+(S.saldo+gain(b)).toFixed(2);}
-    else if(prev.result==='pending'&&val==='lose'){S.saldo=+(S.saldo-b.stake).toFixed(2);}
-    else if(prev.result==='win'&&val==='lose'){S.saldo=+(S.saldo-gain(b)-b.stake).toFixed(2);}
-    else if(prev.result==='win'&&val==='pending'){S.saldo=+(S.saldo-gain(b)).toFixed(2);}
-    else if(prev.result==='lose'&&val==='win'){S.saldo=+(S.saldo+gain(b)+b.stake).toFixed(2);}
-    else if(prev.result==='lose'&&val==='pending'){S.saldo=+(S.saldo+b.stake).toFixed(2);}
+  const prevResult=b.result;
+  const prevStake=b.stake;
+  const prevOdds=b.odds;
+
+  // Ediciones de stake/odds (sin cambiar resultado)
+  if(key==='stake'||key==='odds'){
+    b[key]=parseFloat(val)||0;
+    if(prevResult==='pending'||prevResult==='lose'){
+      // ajustar el stake comprometido en la banca
+      if(key==='stake'){ const diff=b.stake-prevStake; S.saldo=+(S.saldo-diff).toFixed(2); }
+    } else if(prevResult==='win'){
+      const oldReturn=prevStake*prevOdds, newReturn=b.stake*b.odds;
+      S.saldo=+(S.saldo-oldReturn+newReturn).toFixed(2);
+    }
+    save();render();return;
   }
+
+  // Cambio de RESULTADO
+  if(key==='result'){
+    const betName=b.desc||'Apuesta';
+    // Caso especial: cerrar la apuesta → pedir el valor de cierre
+    if(val==='cashout'){
+      const banca=b.stake*b.odds;
+      modal('💰 Cerrar apuesta (cash out)',[
+        {id:'c',label:`Stake ${eur(b.stake)} · cuota ${b.odds} (ganancia total sería ${eur(banca)}). ¿Cuánto te devuelve la casa al cerrar?`,type:'number',val:(b.cashout||b.stake).toFixed(2)}
+      ],d=>{
+        const cash=parseFloat(d.c);
+        if(isNaN(cash)||cash<0){snack('Valor inválido');return;}
+        // revertir efecto anterior y aplicar el cierre
+        S.saldo=+(S.saldo-betEffect(b,prevResult)+cash).toFixed(2);
+        b.result='cashout'; b.cashout=+cash.toFixed(2);
+        const pnl=cash-b.stake;
+        logMove(`${s.name} · ${betName} cerrada`,cash-betEffect(b,prevResult));
+        snack(`💰 Cerrada en ${eur(cash)} · ${pnl>=0?'+':''}${eur(pnl)}`);
+        save();render();
+      });
+      return; // no aplicamos cambios hasta confirmar el modal
+    }
+    // Resto de transiciones: revertir lo anterior, aplicar lo nuevo
+    const before=S.saldo;
+    S.saldo=+(S.saldo-betEffect(b,prevResult)).toFixed(2);
+    if(prevResult==='cashout') b.cashout=0;
+    b.result=val;
+    S.saldo=+(S.saldo+betEffect(b,val)).toFixed(2);
+    const delta=+(S.saldo-before).toFixed(2);
+    const resLbl=val==='win'?'ganada':val==='lose'?'perdida':'pendiente';
+    if(delta!==0) logMove(`${s.name} · ${betName} ${resLbl}`,delta);
+    save();render();return;
+  }
+
+  // Otros campos (desc, market, note)
+  b[key]=val;
   save();render();
+}
+
+function editCashout(sid,bid){
+  const s=gs(sid);const b=s?.bets.find(b=>b.id===bid);
+  if(!b||b.result!=='cashout')return;
+  modal('💰 Editar valor de cierre',[
+    {id:'c',label:`Stake ${eur(b.stake)}. Valor que te devolvió la casa:`,type:'number',val:(b.cashout||0).toFixed(2)}
+  ],d=>{
+    const cash=parseFloat(d.c);
+    if(isNaN(cash)||cash<0){snack('Valor inválido');return;}
+    S.saldo=+(S.saldo-(b.cashout||0)+cash).toFixed(2);
+    b.cashout=+cash.toFixed(2);
+    const pnl=cash-b.stake;
+    snack(`Cierre actualizado · ${pnl>=0?'+':''}${eur(pnl)}`);
+    save();render();
+  });
 }
 
 function delBet(sid,bid){
   const s=gs(sid);if(!s)return;
   const b=s.bets.find(b=>b.id===bid);
-  if(b&&b.result==='win'){S.saldo=+(S.saldo-b.stake*b.odds+b.stake).toFixed(2);}
-  else if(b&&b.result==='lose'){S.saldo=+(S.saldo+b.stake).toFixed(2);}
+  if(b){
+    if(b.result==='pending'){S.saldo=+(S.saldo+b.stake).toFixed(2);}        // devolver stake comprometido
+    else if(b.result==='win'){S.saldo=+(S.saldo-b.stake*b.odds).toFixed(2);} // quitar el retorno que sumó
+    else if(b.result==='cashout'){S.saldo=+(S.saldo-(b.cashout||0)).toFixed(2);} // quitar el cierre que sumó
+    // perdida: el stake ya está perdido, no se devuelve nada
+  }
   s.bets=s.bets.filter(b=>b.id!==bid);
   save();render();
+}
+
+// ── EXPORTAR / IMPORTAR ─────────────────────────────────────────────────────
+function exportData(){
+  try{
+    const data=JSON.stringify(S,null,2);
+    const blob=new Blob([data],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const d=new Date();
+    const stamp=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}`;
+    a.href=url; a.download=`bettrack_backup_${stamp}.json`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    snack('✓ Copia de seguridad descargada');
+  }catch(e){ snack('⚠️ Error al exportar'); }
+}
+
+function importData(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.json,application/json';
+  inp.onchange=e=>{
+    const file=e.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        if(!data||typeof data!=='object'||!('saldo' in data)){snack('⚠️ Archivo no válido');return;}
+        modal('Importar datos',[
+          {id:'m',label:'¿Cómo quieres importar?',type:'select',opts:[
+            {v:'replace',l:'Reemplazar todo (borra lo actual)'},
+            {v:'merge',l:'Añadir estrategias a las actuales'}
+          ],val:'replace'}
+        ],d=>{
+          if(d.m==='replace'){
+            S={saldo:data.saldo||0,tab:'global',strategies:data.strategies||[],history:data.history||[]};
+          } else {
+            // merge: añade estrategias con nuevos ids
+            (data.strategies||[]).forEach(st=>{
+              st.id=uid(); S.strategies.push(st);
+            });
+            S.saldo=+(S.saldo+(data.saldo||0)).toFixed(2);
+          }
+          if(!Array.isArray(S.history)) S.history=[];
+          save();render();
+          snack('✓ Datos importados correctamente');
+        });
+      }catch(err){ snack('⚠️ No se pudo leer el archivo'); }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+}
+
+function clearHistory(){
+  if(!confirm('¿Borrar el historial de movimientos? (no afecta a tus apuestas ni al saldo)'))return;
+  S.history=[]; save(); render(); snack('Historial borrado');
 }
 
 // ── MODAL ──────────────────────────────────────────────────────────────────
