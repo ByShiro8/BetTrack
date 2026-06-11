@@ -345,6 +345,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 .progress-track{background:var(--felt4);border-radius:4px;height:3px;margin-bottom:10px;overflow:hidden}
 .progress-fill{height:3px;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
 .reto-withdrawn{font-size:10px;color:var(--amber);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.reto-odds-hist{font-size:10px;color:var(--cream3);font-family:'DM Mono',monospace;margin-bottom:8px;word-break:break-word;line-height:1.4}
 .reto-actions{display:flex;gap:5px}
 .btn-win{
   flex:1;
@@ -699,12 +700,19 @@ function snack(msg, ms=2800){
 
 // ── STATS ──────────────────────────────────────────────────────────────────
 function retoStats(s){
+  const defOdds=parseFloat(s.config?.odds)||1.5;
   let inv=0,ret=0,active=0,dead=0,completed=0,committed=0;
   (s.retos||[]).forEach(r=>{
     inv+=r.stake||0;
     if(r.dead) dead++;
     else if(r.completed){ completed++; ret+=r.finalBanca||0; }
-    else { active++; if(r.withdrawn) ret+=r.withdrawn; committed+=(r.stake||0); }
+    else {
+      active++;
+      if(r.withdrawn) ret+=r.withdrawn;
+      // El dinero "en juego" es la banca actual del reto, no el stake inicial
+      const banca=(r.banca!=null)?r.banca:(r.stake||0)*Math.pow(defOdds,r.step||0);
+      committed+=banca;
+    }
   });
   return {inv,ret,active,dead,completed,committed,pnl:ret-inv,total:(s.retos||[]).length};
 }
@@ -898,7 +906,7 @@ function renderReto(s){
 
   let cards=(s.retos||[]).map(r=>{
     const rStake=parseFloat(r.stake)||stake;
-    const banca=rStake*Math.pow(odds,r.step);
+    const banca=(r.banca!=null)?r.banca:rStake*Math.pow(odds,r.step);
     const pct=Math.min((r.step/target)*100,100);
     const isWarn=!r.dead&&!r.completed&&r.step>=wStep;
     const stepClass=r.dead?'dead-step':isWarn?'warn-step':'alive';
@@ -908,11 +916,15 @@ function renderReto(s){
       isWarn?'<span class="badge badge-amber">Retirar</span>':
       '<span class="badge badge-green">Activo</span>';
     const withdrawn=r.withdrawn?`<div class="reto-withdrawn">↑ Retirado: ${eur(r.withdrawn)}</div>`:'';
+    const lastOdds=(Array.isArray(r.stepOdds)&&r.stepOdds.length)?r.stepOdds[r.stepOdds.length-1]:null;
+    const oddsHistory=(Array.isArray(r.stepOdds)&&r.stepOdds.length)?`<div class="reto-odds-hist">cuotas: ${r.stepOdds.map(o=>o.toFixed(2)).join(' × ')}</div>`:'';
     let actions='';
     if(!r.dead&&!r.completed){
+      const undoBtn=r.step>0?`<button class="btn-sm" onclick="rUndo('${s.id}','${r.id}')" title="Deshacer última ganada">↶</button>`:'';
       actions=`<div class="reto-actions">
         <button class="btn-win" onclick="rWin('${s.id}','${r.id}')">✓ Gana</button>
         <button class="btn-lose" onclick="rLose('${s.id}','${r.id}')">✗ Pierde</button>
+        ${undoBtn}
         <button class="btn-sm" onclick="rWithdraw('${s.id}','${r.id}')" title="Retirar parcial">↑</button>
         <button class="btn-sm danger" onclick="rDelete('${s.id}','${r.id}')" title="Eliminar">✕</button>
       </div>`;
@@ -932,6 +944,7 @@ function renderReto(s){
         <span class="reto-banca-lbl">Banca</span>
         <span class="reto-banca-val">${eur(banca)}</span>
       </div>
+      ${oddsHistory}
       <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
       ${withdrawn}
       ${actions}
@@ -1115,7 +1128,7 @@ function rAdd(sid){
   if(S.saldo<stake){snack('⚠️ Saldo insuficiente para este stake');return;}
   S.saldo=+(S.saldo-stake).toFixed(2);
   const num=(s.retos.length+1);
-  s.retos.push({id:uid(),num,step:0,stake,dead:false,completed:false,withdrawn:0,finalBanca:0,started:true,label:''});
+  s.retos.push({id:uid(),num,step:0,stake,banca:stake,stepOdds:[],dead:false,completed:false,withdrawn:0,finalBanca:0,started:true,label:''});
   logMove(`${s.name} · Reto #${num} creado`,-stake);
   save();render();snack(`Reto #${num} creado — ${eur(stake)} comprometidos`);
 }
@@ -1123,20 +1136,30 @@ function rAdd(sid){
 function rWin(sid,rid){
   const s=gs(sid);const r=s?.retos.find(r=>r.id===rid);
   if(!r||r.dead||r.completed)return;
-  const odds=parseFloat(s.config.odds)||1.5;
+  const defOdds=parseFloat(s.config.odds)||1.5;
   const target=parseInt(s.config.target)||12;
-  r.step++;
-  const banca=r.stake*Math.pow(odds,r.step);
-  if(r.step>=target){
-    r.completed=true;r.finalBanca=banca;
-    const net=banca-(r.withdrawn||0);
-    S.saldo=+(S.saldo+net).toFixed(2);
-    logMove(`${s.name} · Reto #${r.num} completado (P${r.step})`,net);
-    snack(`🏆 Reto #${r.num} completado! +${eur(banca)}`);
-  } else {
-    snack(`✅ Reto #${r.num} → Paso ${r.step} · Banca: ${eur(banca)}`);
-  }
-  save();render();
+  const curBanca=(r.banca!=null)?r.banca:r.stake*Math.pow(defOdds,r.step);
+  // Pedir la cuota real de esta apuesta concreta
+  modal(`✓ Ganada — Reto #${r.num} · Paso ${r.step+1}`,[
+    {id:'o',label:`Banca actual ${eur(curBanca)}. ¿A qué cuota fue esta apuesta?`,type:'number',val:defOdds.toFixed(2)}
+  ],d=>{
+    const o=parseFloat(d.o);
+    if(isNaN(o)||o<=1){snack('Cuota inválida (debe ser > 1)');return;}
+    if(!Array.isArray(r.stepOdds)) r.stepOdds=[];
+    r.stepOdds.push(o);
+    r.banca=+(curBanca*o).toFixed(2);
+    r.step++;
+    if(r.step>=target){
+      r.completed=true;r.finalBanca=r.banca;
+      const net=r.banca-(r.withdrawn||0);
+      S.saldo=+(S.saldo+net).toFixed(2);
+      logMove(`${s.name} · Reto #${r.num} completado (P${r.step})`,net);
+      snack(`🏆 Reto #${r.num} completado! +${eur(r.banca)}`);
+    } else {
+      snack(`✅ Reto #${r.num} → Paso ${r.step} · Banca: ${eur(r.banca)} (cuota ${o})`);
+    }
+    save();render();
+  });
 }
 
 function rLose(sid,rid){
@@ -1147,11 +1170,31 @@ function rLose(sid,rid){
   save();render();
 }
 
+function rUndo(sid,rid){
+  const s=gs(sid);const r=s?.retos.find(r=>r.id===rid);
+  if(!r||r.step<=0)return;
+  // deshacer la última cuota aplicada
+  if(Array.isArray(r.stepOdds)&&r.stepOdds.length){
+    const lastO=r.stepOdds.pop();
+    r.banca=+(r.banca/lastO).toFixed(2);
+  }
+  r.step--;
+  // si estaba completado, revertir el ingreso al saldo
+  if(r.completed){
+    const net=(r.finalBanca||0)-(r.withdrawn||0);
+    S.saldo=+(S.saldo-net).toFixed(2);
+    r.completed=false;r.finalBanca=0;
+    logMove(`${s.name} · Reto #${r.num} deshecho`,-net);
+  }
+  snack(`↶ Reto #${r.num} → Paso ${r.step}`);
+  save();render();
+}
+
 function rWithdraw(sid,rid){
   const s=gs(sid);const r=s?.retos.find(r=>r.id===rid);
   if(!r||r.dead||r.completed)return;
-  const odds=parseFloat(s.config.odds)||1.5;
-  const banca=r.stake*Math.pow(odds,r.step);
+  const defOdds=parseFloat(s.config.odds)||1.5;
+  const banca=(r.banca!=null)?r.banca:r.stake*Math.pow(defOdds,r.step);
   modal(`Retirar parcial — Reto #${r.num}`,[
     {id:'p',label:`Banca actual: ${eur(banca)} · % a retirar`,type:'number',val:50}
   ],d=>{
@@ -1172,7 +1215,7 @@ function rReset(sid,rid){
   const stake=parseFloat(s.config.stake)||10;
   if(S.saldo<stake){snack('⚠️ Saldo insuficiente para reiniciar');return;}
   S.saldo=+(S.saldo-stake).toFixed(2);
-  r.stake=stake;r.step=0;r.dead=false;r.completed=false;r.withdrawn=0;r.finalBanca=0;r.started=true;
+  r.stake=stake;r.banca=stake;r.stepOdds=[];r.step=0;r.dead=false;r.completed=false;r.withdrawn=0;r.finalBanca=0;r.started=true;
   logMove(`${s.name} · Reto #${r.num} reiniciado`,-stake);
   snack(`↺ Reto #${r.num} reiniciado — ${eur(stake)} comprometidos`);
   save();render();
