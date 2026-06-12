@@ -137,6 +137,33 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 }
 .tool-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--felt4)}
 
+/* ── RESPONSIVE MÓVIL ── */
+@media (max-width:640px){
+  .topbar{padding:0 12px;gap:8px;height:auto;min-height:54px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+  .topbar-sep{display:none}
+  .topbar-badge{display:none}
+  .logo-text{font-size:16px}
+  .logo-suits{display:none}
+  .saldo-widget{
+    margin-left:auto;gap:6px;padding:4px 8px 4px 6px;border-radius:16px;
+  }
+  .credits-widget{margin-left:6px}
+  .saldo-coin{width:22px;height:22px;font-size:11px}
+  .saldo-info{min-width:0}
+  .saldo-lbl{font-size:8px;letter-spacing:.05em}
+  .saldo-val{font-size:13px}
+  .saldo-committed{font-size:9px;white-space:nowrap}
+  .saldo-edit-btn{width:22px;height:22px;font-size:11px}
+  .topbar-tools{margin-left:0;width:100%;justify-content:flex-end;gap:6px}
+  .tool-btn{flex:0 0 auto;padding:5px 12px}
+}
+@media (max-width:400px){
+  .saldo-widget{padding:4px 7px 4px 5px}
+  .saldo-coin{display:none}
+  .saldo-val{font-size:12px}
+  .credits-widget{margin-left:5px}
+}
+
 /* ── TABS ── */
 .tabs-nav{
   background:var(--felt2);
@@ -1058,6 +1085,7 @@ function renderLibre(s){
       ).join('');
       const rowBg=b.result==='win'?'background:rgba(0,230,118,.05)':b.result==='lose'?'background:rgba(255,91,91,.05)':b.result==='cashout'?'background:rgba(255,181,46,.05)':'';
       const cashoutInfo=b.result==='cashout'?`<span class="cashout-tag" onclick="editCashout('${s.id}','${b.id}')" title="Editar cierre">cierre: ${eur(b.cashout||0)} ✎</span>`:'';
+      const refundInfo=(b.result==='lose'&&b.refundCredits)?`<span class="cashout-tag" style="color:var(--purple)" onclick="editRefund('${s.id}','${b.id}')" title="Editar créditos devueltos">🎁 ${eur(b.refundCredits)} créditos ✎</span>`:(b.result==='lose'?`<span class="cashout-tag" style="color:var(--cream3)" onclick="editRefund('${s.id}','${b.id}')" title="Añadir créditos devueltos">+ créditos ✎</span>`:'');
       const dateStr=b.ts?fmtDate(b.ts):'—';
       const creditBtn=`<button class="credit-toggle${b.isCredit?' on':''}" onclick="toggleCredit('${s.id}','${b.id}')" title="${b.isCredit?'Apuesta con crédito (clic para cambiar a real)':'Dinero real (clic para cambiar a crédito)'}">${b.isCredit?'🎁':'💵'}</button>`;
       return `<tr style="${rowBg}">
@@ -1069,7 +1097,7 @@ function renderLibre(s){
         <td><input class="td-inp" value="${esc(b.market)}" placeholder="Over 2.5..." onchange="upBet('${s.id}','${b.id}','market',this.value)" style="width:84px"></td>
         <td><input class="td-inp" value="${esc(b.note||'')}" placeholder="Nota..." onchange="upBet('${s.id}','${b.id}','note',this.value)" style="width:76px"></td>
         <td><select class="td-sel" onchange="upBet('${s.id}','${b.id}','result',this.value)" style="width:124px">${resSel}</select></td>
-        <td class="${pClass}" style="white-space:nowrap;font-size:13px">${pTxt}${cashoutInfo}</td>
+        <td class="${pClass}" style="white-space:nowrap;font-size:13px">${pTxt}${cashoutInfo}${refundInfo}</td>
         <td><button class="btn-sm danger" onclick="delBet('${s.id}','${b.id}')" style="width:26px;height:26px">✕</button></td>
       </tr>`;
     }).join('');
@@ -1351,6 +1379,11 @@ function upBet(sid,bid,key,val){
   // Cambio de RESULTADO
   if(key==='result'){
     const betName=b.desc||'Apuesta';
+    // Si la apuesta tenía créditos devueltos por pérdida y deja de estar perdida, quitarlos
+    if(prevResult==='lose' && b.refundCredits && val!=='lose'){
+      S.credits=+((S.credits||0)-b.refundCredits).toFixed(2);
+      b.refundCredits=0;
+    }
     // Caso especial: cerrar la apuesta → pedir el valor de cierre
     if(val==='cashout'){
       const banca=b.stake*b.odds;
@@ -1369,6 +1402,32 @@ function upBet(sid,bid,key,val){
       });
       return; // no aplicamos cambios hasta confirmar el modal
     }
+    // Caso especial: marcar como PERDIDA → preguntar si la casa devuelve créditos (oferta)
+    if(val==='lose'){
+      modal('❌ Apuesta perdida',[
+        {id:'cr',label:'¿Te ha devuelto la casa créditos por esta apuesta? (0 si no)',type:'number',val:0}
+      ],d=>{
+        const cr=parseFloat(d.cr)||0;
+        // revertir efecto anterior y aplicar perdida
+        const before=S.saldo;
+        S.saldo=+(S.saldo-betEffect(b,prevResult)).toFixed(2);
+        if(prevResult==='cashout') b.cashout=0;
+        b.result='lose';
+        const delta=+(S.saldo-before).toFixed(2);
+        if(delta!==0) logMove(`${s.name} · ${betName} perdida`,delta);
+        // añadir créditos de oferta si los hay
+        if(cr>0){
+          S.credits=+((S.credits||0)+cr).toFixed(2);
+          b.refundCredits=cr;
+          logMove(`🎁 Créditos por ${betName} perdida`,0);
+          snack(`❌ Perdida · 🎁 +${eur(cr)} en créditos`);
+        } else {
+          snack(`❌ ${betName} perdida`);
+        }
+        save();render();
+      });
+      return;
+    }
     // Resto de transiciones: revertir lo anterior, aplicar lo nuevo
     const before=S.saldo;
     S.saldo=+(S.saldo-betEffect(b,prevResult)).toFixed(2);
@@ -1376,7 +1435,7 @@ function upBet(sid,bid,key,val){
     b.result=val;
     S.saldo=+(S.saldo+betEffect(b,val)).toFixed(2);
     const delta=+(S.saldo-before).toFixed(2);
-    const resLbl=val==='win'?'ganada':val==='lose'?'perdida':'pendiente';
+    const resLbl=val==='win'?'ganada':'pendiente';
     if(delta!==0) logMove(`${s.name} · ${betName} ${resLbl}`,delta);
     save();render();return;
   }
@@ -1402,6 +1461,21 @@ function editCashout(sid,bid){
   });
 }
 
+function editRefund(sid,bid){
+  const s=gs(sid);const b=s?.bets.find(b=>b.id===bid);
+  if(!b||b.result!=='lose')return;
+  modal('🎁 Créditos devueltos por la oferta',[
+    {id:'cr',label:`Apuesta perdida. ¿Cuántos créditos te ha dado la casa?`,type:'number',val:(b.refundCredits||0).toFixed(2)}
+  ],d=>{
+    const cr=parseFloat(d.cr); if(isNaN(cr)||cr<0){snack('Valor inválido');return;}
+    const old=b.refundCredits||0;
+    S.credits=+((S.credits||0)-old+cr).toFixed(2);
+    b.refundCredits=+cr.toFixed(2);
+    snack(cr>0?`🎁 ${eur(cr)} en créditos`:'Créditos quitados');
+    save();render();
+  });
+}
+
 function delBet(sid,bid){
   const s=gs(sid);if(!s)return;
   const b=s.bets.find(b=>b.id===bid);
@@ -1413,7 +1487,7 @@ function delBet(sid,bid){
     }
     else if(b.result==='win'){ S.saldo=+(S.saldo-betEffect(b,'win')).toFixed(2); } // quitar la ganancia que sumó
     else if(b.result==='cashout'){ S.saldo=+(S.saldo-(b.cashout||0)).toFixed(2); }
-    // perdida: ya consumido, no se devuelve nada
+    else if(b.result==='lose' && b.refundCredits){ S.credits=+((S.credits||0)-b.refundCredits).toFixed(2); } // quitar créditos de oferta
   }
   s.bets=s.bets.filter(b=>b.id!==bid);
   save();render();
