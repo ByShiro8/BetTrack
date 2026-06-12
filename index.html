@@ -119,6 +119,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 .saldo-val.neg{color:var(--lose)}
 .saldo-committed{font-size:10px;color:var(--cream3);font-family:'DM Mono',monospace;line-height:1.3}
 .saldo-committed.has-val{color:var(--amber)}
+.credits-coin{background:linear-gradient(135deg,#a77dff,#7d4fd9)!important;box-shadow:0 2px 8px rgba(167,125,255,.3)!important}
+.credits-val{color:var(--purple)!important}
 .saldo-edit-btn{
   width:26px;height:26px;border-radius:50%;
   border:1px solid var(--border2);color:var(--cream3);
@@ -435,6 +437,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 .pnl-nil{color:var(--cream3);font-family:'DM Mono',monospace}
 .cashout-tag{display:block;font-size:10px;color:var(--amber);font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;margin-top:2px;opacity:.85;transition:.15s}
 .cashout-tag:hover{opacity:1;text-decoration:underline}
+.credit-toggle{
+  width:30px;height:28px;border-radius:var(--rs);
+  border:1px solid var(--border2);background:var(--felt3);
+  font-size:14px;cursor:pointer;transition:.15s;
+}
+.credit-toggle:hover{border-color:var(--gold)}
+.credit-toggle.on{border-color:var(--purple);background:var(--purple-bg)}
 
 /* ── GLOBAL VIEW ── */
 .global-hero{
@@ -640,6 +649,14 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
       </div>
       <button class="saldo-edit-btn" onclick="editSaldo()" title="Editar saldo">✎</button>
     </div>
+    <div class="saldo-widget credits-widget">
+      <div class="saldo-coin credits-coin">🎁</div>
+      <div class="saldo-info">
+        <span class="saldo-lbl">Créditos</span>
+        <span class="saldo-val credits-val" id="credits-display">—</span>
+      </div>
+      <button class="saldo-edit-btn" onclick="editCredits()" title="Editar créditos">✎</button>
+    </div>
     <div class="topbar-tools">
       <button class="tool-btn" onclick="exportData()" title="Descargar copia de seguridad">⭳ Exportar</button>
       <button class="tool-btn" onclick="importData()" title="Cargar datos desde archivo">⭱ Importar</button>
@@ -652,7 +669,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.4}
 <script>
 
 // ── STATE ──────────────────────────────────────────────────────────────────
-let S = { saldo: 100, tab: 'global', strategies: [], history: [] };
+let S = { saldo: 100, credits: 0, tab: 'global', strategies: [], history: [] };
 
 function save(){ try{ localStorage.setItem('bettrack_v3', JSON.stringify(S)); }catch(e){} }
 function load(){
@@ -663,6 +680,7 @@ function load(){
     const d = d3 || d2;
     if(d){ const p = JSON.parse(d); if(p && typeof p === 'object') S = {...S, ...p}; }
     if(!Array.isArray(S.history)) S.history=[];
+    if(typeof S.credits!=='number') S.credits=0;
   }catch(e){}
 }
 
@@ -719,9 +737,13 @@ function retoStats(s){
 function betStats(s){
   let inv=0,ret=0,wins=0,losses=0,pend=0,closed=0;
   (s.bets||[]).forEach(b=>{
-    if(b.result==='win'){inv+=b.stake;ret+=b.stake*b.odds;wins++;}
-    else if(b.result==='lose'){inv+=b.stake;losses++;}
-    else if(b.result==='cashout'){inv+=b.stake;ret+=(b.cashout||0);closed++;}
+    if(b.result==='win'){
+      if(!b.isCredit){inv+=b.stake;ret+=b.stake*b.odds;}
+      else {ret+=b.stake*(b.odds-1);} // crédito: no invierte dinero real, solo gana
+      wins++;
+    }
+    else if(b.result==='lose'){ if(!b.isCredit)inv+=b.stake; losses++; } // crédito perdido no cuenta
+    else if(b.result==='cashout'){ if(!b.isCredit)inv+=b.stake; ret+=(b.cashout||0); closed++; }
     else pend++;
   });
   return {inv,ret,wins,losses,pend,closed,pnl:ret-inv};
@@ -746,13 +768,16 @@ function render(){
   let committed=0;
   S.strategies.forEach(s=>{
     if(s.type==='reto'){ committed+=retoStats(s).committed; }
-    else { (s.bets||[]).forEach(b=>{ if(b.result==='pending') committed+=(b.stake||0); }); }
+    else { (s.bets||[]).forEach(b=>{ if(b.result==='pending'&&!b.isCredit) committed+=(b.stake||0); }); }
   });
   const cd=document.getElementById('committed-display');
   if(cd){
     if(committed>0){ cd.textContent='⏳ '+eur(committed)+' apostado'; cd.className='saldo-committed has-val'; }
     else { cd.textContent=''; cd.className='saldo-committed'; }
   }
+
+  const crd=document.getElementById('credits-display');
+  if(crd) crd.textContent=eur(S.credits||0);
 
   const tnav=document.getElementById('tabs-nav');
   let th=`<button class="tab-btn global-tab${S.tab==='global'?' active':''}" onclick="setTab('global')"><div class="tab-dot"></div>Global</button>`;
@@ -1019,12 +1044,12 @@ function renderLibre(s){
   }
 
   const rows=list.length===0
-    ?`<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--cream3);font-weight:500">${(s.bets||[]).length===0?'Sin apuestas — pulsa Añadir para empezar':'Ninguna apuesta con este filtro'}</td></tr>`
+    ?`<tr><td colspan="10" style="text-align:center;padding:36px;color:var(--cream3);font-weight:500">${(s.bets||[]).length===0?'Sin apuestas — pulsa Añadir para empezar':'Ninguna apuesta con este filtro'}</td></tr>`
     :list.map(b=>{
       let profit;
-      if(b.result==='win') profit=b.stake*(b.odds-1);
-      else if(b.result==='lose') profit=-b.stake;
-      else if(b.result==='cashout') profit=(b.cashout||0)-b.stake;
+      if(b.result==='win') profit=b.isCredit?b.stake*(b.odds-1):b.stake*(b.odds-1);
+      else if(b.result==='lose') profit=b.isCredit?0:-b.stake; // crédito perdido no resta dinero real
+      else if(b.result==='cashout') profit=(b.cashout||0)-(b.isCredit?0:b.stake);
       else profit=null;
       const pClass=profit===null?'pnl-nil':profit>=0?'pnl-pos':'pnl-neg';
       const pTxt=profit===null?'—':(profit>=0?'+':'')+eur(profit);
@@ -1034,14 +1059,16 @@ function renderLibre(s){
       const rowBg=b.result==='win'?'background:rgba(0,230,118,.05)':b.result==='lose'?'background:rgba(255,91,91,.05)':b.result==='cashout'?'background:rgba(255,181,46,.05)':'';
       const cashoutInfo=b.result==='cashout'?`<span class="cashout-tag" onclick="editCashout('${s.id}','${b.id}')" title="Editar cierre">cierre: ${eur(b.cashout||0)} ✎</span>`:'';
       const dateStr=b.ts?fmtDate(b.ts):'—';
+      const creditBtn=`<button class="credit-toggle${b.isCredit?' on':''}" onclick="toggleCredit('${s.id}','${b.id}')" title="${b.isCredit?'Apuesta con crédito (clic para cambiar a real)':'Dinero real (clic para cambiar a crédito)'}">${b.isCredit?'🎁':'💵'}</button>`;
       return `<tr style="${rowBg}">
         <td style="font-size:11px;color:var(--cream3);font-family:'DM Mono',monospace;white-space:nowrap">${dateStr}</td>
-        <td><input class="td-inp" value="${esc(b.desc)}" placeholder="Partido..." onchange="upBet('${s.id}','${b.id}','desc',this.value)" style="min-width:110px"></td>
-        <td><input class="td-inp" type="number" step="0.5" min="0" value="${b.stake}" onchange="upBet('${s.id}','${b.id}','stake',this.value)" style="width:68px;font-family:'DM Mono',monospace"></td>
-        <td><input class="td-inp" type="number" step="0.05" min="1" value="${b.odds}" onchange="upBet('${s.id}','${b.id}','odds',this.value)" style="width:62px;font-family:'DM Mono',monospace"></td>
-        <td><input class="td-inp" value="${esc(b.market)}" placeholder="Over 2.5..." onchange="upBet('${s.id}','${b.id}','market',this.value)" style="width:88px"></td>
-        <td><input class="td-inp" value="${esc(b.note||'')}" placeholder="Nota..." onchange="upBet('${s.id}','${b.id}','note',this.value)" style="width:80px"></td>
-        <td><select class="td-sel" onchange="upBet('${s.id}','${b.id}','result',this.value)" style="width:128px">${resSel}</select></td>
+        <td style="text-align:center">${creditBtn}</td>
+        <td><input class="td-inp" value="${esc(b.desc)}" placeholder="Partido..." onchange="upBet('${s.id}','${b.id}','desc',this.value)" style="min-width:100px"></td>
+        <td><input class="td-inp" type="number" step="0.5" min="0" value="${b.stake}" onchange="upBet('${s.id}','${b.id}','stake',this.value)" style="width:64px;font-family:'DM Mono',monospace"></td>
+        <td><input class="td-inp" type="number" step="0.05" min="1" value="${b.odds}" onchange="upBet('${s.id}','${b.id}','odds',this.value)" style="width:60px;font-family:'DM Mono',monospace"></td>
+        <td><input class="td-inp" value="${esc(b.market)}" placeholder="Over 2.5..." onchange="upBet('${s.id}','${b.id}','market',this.value)" style="width:84px"></td>
+        <td><input class="td-inp" value="${esc(b.note||'')}" placeholder="Nota..." onchange="upBet('${s.id}','${b.id}','note',this.value)" style="width:76px"></td>
+        <td><select class="td-sel" onchange="upBet('${s.id}','${b.id}','result',this.value)" style="width:124px">${resSel}</select></td>
         <td class="${pClass}" style="white-space:nowrap;font-size:13px">${pTxt}${cashoutInfo}</td>
         <td><button class="btn-sm danger" onclick="delBet('${s.id}','${b.id}')" style="width:26px;height:26px">✕</button></td>
       </tr>`;
@@ -1084,7 +1111,7 @@ function renderLibre(s){
     <div class="bets-table-wrap">
       <table class="bets-table">
         <thead><tr>
-          <th>Fecha</th><th>Descripción</th><th>Stake €</th><th>Cuota</th>
+          <th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Stake €</th><th>Cuota</th>
           <th>Mercado</th><th>Nota</th><th>Resultado</th><th>P&L</th><th></th>
         </tr></thead>
         <tbody>${rows}</tbody>
@@ -1100,6 +1127,27 @@ function setBetSort(sid,v){const s=gs(sid);if(s){s.betSort=v;save();render();}}
 function editSaldo(){
   modal('Editar saldo',[{id:'v',label:'Saldo disponible (€)',type:'number',val:S.saldo}],
     d=>{const v=parseFloat(d.v);if(!isNaN(v)){const old=S.saldo;S.saldo=+v.toFixed(2);logMove('Ajuste manual de saldo',S.saldo-old);save();render();}});
+}
+
+function editCredits(){
+  modal('🎁 Editar créditos de apuesta',[
+    {id:'mode',label:'¿Qué quieres hacer?',type:'select',opts:[
+      {v:'set',l:'Fijar cantidad total'},
+      {v:'add',l:'Añadir créditos'},
+      {v:'sub',l:'Quitar créditos'}
+    ],val:'set'},
+    {id:'v',label:'Cantidad (€)',type:'number',val:S.credits||0}
+  ],d=>{
+    const v=parseFloat(d.v); if(isNaN(v))return;
+    const old=S.credits||0;
+    if(d.mode==='set') S.credits=+v.toFixed(2);
+    else if(d.mode==='add') S.credits=+(old+v).toFixed(2);
+    else if(d.mode==='sub') S.credits=+Math.max(0,old-v).toFixed(2);
+    const delta=S.credits-old;
+    if(delta!==0) logMove(`🎁 Ajuste de créditos`,0); // no afecta dinero real
+    save();render();
+    snack(`Créditos: ${eur(S.credits)}`);
+  });
 }
 
 function newStrategy(){
@@ -1239,16 +1287,41 @@ function addBet(sid){
   const stake=10;
   if(S.saldo<stake){snack('⚠️ Saldo insuficiente');return;}
   S.saldo=+(S.saldo-stake).toFixed(2);
-  s.bets.unshift({id:uid(),ts:Date.now(),desc:'',stake,odds:1.50,market:'',note:'',result:'pending'});
+  s.bets.unshift({id:uid(),ts:Date.now(),desc:'',stake,odds:1.50,market:'',note:'',result:'pending',isCredit:false});
   logMove(`${s.name} · Apuesta creada`,-stake);
   save();render();snack(`Apuesta creada — ${eur(stake)} comprometidos`);
 }
 
-// Devuelve el ajuste de saldo que aportó un resultado concreto (para revertirlo)
+// Alterna entre apuesta de dinero real y de crédito, ajustando los saldos
+function toggleCredit(sid,bid){
+  const s=gs(sid);const b=s?.bets.find(b=>b.id===bid);
+  if(!b)return;
+  // solo se puede cambiar el tipo si la apuesta está pendiente
+  if(b.result!=='pending'){snack('Solo se puede cambiar el tipo si está pendiente');return;}
+  if(!b.isCredit){
+    // pasa de real → crédito: devolver stake al dinero real, descontar de créditos
+    S.saldo=+(S.saldo+b.stake).toFixed(2);
+    S.credits=+((S.credits||0)-b.stake).toFixed(2);
+    b.isCredit=true;
+    snack(`🎁 Apuesta con crédito · ${eur(b.stake)} de créditos`);
+  } else {
+    // pasa de crédito → real: devolver crédito, descontar dinero real
+    S.credits=+((S.credits||0)+b.stake).toFixed(2);
+    S.saldo=+(S.saldo-b.stake).toFixed(2);
+    b.isCredit=false;
+    snack(`💵 Apuesta con dinero real`);
+  }
+  save();render();
+}
+
+// Devuelve el ajuste de DINERO REAL que aportó un resultado concreto (para revertirlo)
 function betEffect(b, result){
-  if(result==='win') return b.stake*b.odds;        // sumó el retorno bruto
-  if(result==='cashout') return b.cashout||0;       // sumó el valor de cierre
-  return 0;                                          // pending y lose no suman nada (stake ya salió al crear)
+  if(result==='win'){
+    // crédito: solo ganancia (SNR). real: retorno completo
+    return b.isCredit ? b.stake*(b.odds-1) : b.stake*b.odds;
+  }
+  if(result==='cashout') return b.cashout||0;
+  return 0; // pending y lose no suman nada
 }
 
 function upBet(sid,bid,key,val){
@@ -1262,11 +1335,15 @@ function upBet(sid,bid,key,val){
   if(key==='stake'||key==='odds'){
     b[key]=parseFloat(val)||0;
     if(prevResult==='pending'||prevResult==='lose'){
-      // ajustar el stake comprometido en la banca
-      if(key==='stake'){ const diff=b.stake-prevStake; S.saldo=+(S.saldo-diff).toFixed(2); }
+      if(key==='stake'){
+        const diff=b.stake-prevStake;
+        if(b.isCredit){ S.credits=+((S.credits||0)-diff).toFixed(2); }
+        else { S.saldo=+(S.saldo-diff).toFixed(2); }
+      }
     } else if(prevResult==='win'){
-      const oldReturn=prevStake*prevOdds, newReturn=b.stake*b.odds;
-      S.saldo=+(S.saldo-oldReturn+newReturn).toFixed(2);
+      const oldEff=b.isCredit?prevStake*(prevOdds-1):prevStake*prevOdds;
+      const newEff=b.isCredit?b.stake*(b.odds-1):b.stake*b.odds;
+      S.saldo=+(S.saldo-oldEff+newEff).toFixed(2);
     }
     save();render();return;
   }
@@ -1329,10 +1406,14 @@ function delBet(sid,bid){
   const s=gs(sid);if(!s)return;
   const b=s.bets.find(b=>b.id===bid);
   if(b){
-    if(b.result==='pending'){S.saldo=+(S.saldo+b.stake).toFixed(2);}        // devolver stake comprometido
-    else if(b.result==='win'){S.saldo=+(S.saldo-b.stake*b.odds).toFixed(2);} // quitar el retorno que sumó
-    else if(b.result==='cashout'){S.saldo=+(S.saldo-(b.cashout||0)).toFixed(2);} // quitar el cierre que sumó
-    // perdida: el stake ya está perdido, no se devuelve nada
+    if(b.result==='pending'){
+      // devolver stake comprometido al saldo correcto
+      if(b.isCredit){ S.credits=+((S.credits||0)+b.stake).toFixed(2); }
+      else { S.saldo=+(S.saldo+b.stake).toFixed(2); }
+    }
+    else if(b.result==='win'){ S.saldo=+(S.saldo-betEffect(b,'win')).toFixed(2); } // quitar la ganancia que sumó
+    else if(b.result==='cashout'){ S.saldo=+(S.saldo-(b.cashout||0)).toFixed(2); }
+    // perdida: ya consumido, no se devuelve nada
   }
   s.bets=s.bets.filter(b=>b.id!==bid);
   save();render();
